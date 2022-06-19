@@ -27,7 +27,8 @@ export type registerForm = {
 };
 
 const register: NextPage = () => {
-  const { user: authUser, loading: isLoggedInLoading } = useFirebaseAuth();
+  const { user: authUser, completed: isLoggedInLoadingComplete } =
+    useFirebaseAuth();
   const [form, setForm] = useState<registerForm>({
     password: "",
     confirmPassword: "",
@@ -109,7 +110,7 @@ const register: NextPage = () => {
     );
   }
 
-  if (isLoggedInLoading)
+  if (!isLoggedInLoadingComplete)
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />

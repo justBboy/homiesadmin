@@ -36,6 +36,8 @@ const Home: NextPage = () => {
     }
   }, [user, completed]);
 
+  console.log(completed, user);
+
   if (completed && user) {
     return (
       <div className={`min-w-[100vw] min-h-[100vh]`}>

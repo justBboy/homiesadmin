@@ -1,8 +1,15 @@
 import axios from "../../libs/axios";
-import { collection, getDocs, limit, query } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  limit,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { auth, db } from "../../libs/Firebase";
 import { memberFormItems } from "../../pages/addMember";
-import { getIdToken } from "firebase/auth";
+import { getIdToken, updateEmail, updateProfile } from "firebase/auth";
 
 export const getAdminsApi = async (page: number) => {
   try {
@@ -39,13 +46,39 @@ export const editAdminApi = async (
 ) => {
   try {
     if (auth.currentUser) {
-      const token = await getIdToken(auth.currentUser);
-      const res = await axios.post("/auth/updateAdmin", {
-        ...data,
-        token,
-        uid,
-      });
-      if (res.data.error) throw res.data.error;
+      if (auth.currentUser.uid !== uid) {
+        const token = await getIdToken(auth.currentUser);
+        const res = await axios.post("/auth/updateAdmin", {
+          ...data,
+          token,
+          uid,
+        });
+        if (res.data.error) throw res.data.error;
+      } else {
+        if (
+          `+233${data.phoneNumber.substring(1)}` !==
+          auth.currentUser.phoneNumber
+        ) {
+          const token = await getIdToken(auth.currentUser);
+          const res = await axios.post("/auth/changePhoneAdmin", {
+            phoneNumber: data.phoneNumber,
+            token,
+          });
+          if (res.data.error) throw res.data.error;
+        }
+        if (data.email !== auth.currentUser.email)
+          await updateEmail(auth.currentUser, data.email);
+        if (data.username !== auth.currentUser.displayName)
+          await updateProfile(auth.currentUser, {
+            displayName: data.username,
+          });
+
+        const q = query(collection(db, "admins"), where("uid", "==", uid));
+        const matched = await getDocs(q);
+        for (const adm of matched.docs) {
+          await updateDoc(adm.ref, data);
+        }
+      }
       return { uid, data };
     }
     return null;

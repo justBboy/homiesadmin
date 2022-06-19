@@ -1,9 +1,9 @@
 import { onAuthStateChanged, Unsubscribe, User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { auth } from "../../libs/Firebase";
 
 export type savedUserType = {
+  uid: string;
   email: string | null;
   phone: string | null;
   username: string | null;
@@ -18,6 +18,7 @@ const useFirebaseAuth = () => {
     if (user) {
       const idTokenResult = await user.getIdTokenResult();
       const u: savedUserType = {
+        uid: user.uid,
         email: user.email,
         phone: user.phoneNumber,
         username: user.displayName,
@@ -28,6 +29,7 @@ const useFirebaseAuth = () => {
       setCompleted(true);
     } else {
       setUser(user);
+      setCompleted(true);
     }
   };
   useEffect(() => {

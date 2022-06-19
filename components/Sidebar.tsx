@@ -9,10 +9,11 @@ import { useAppSelector } from "../features/hooks";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
-import { AiOutlineLogout } from "react-icons/ai";
+import { VscAccount } from "react-icons/vsc";
 import { signOut } from "firebase/auth";
 import { auth } from "../libs/Firebase";
 import ConfirmModal from "./ConfirmModal";
+import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
 
 interface props {}
 
@@ -25,6 +26,7 @@ const Sidebar: React.FC<props> = ({}) => {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const dispatch = useDispatch();
   const sidebarStreched = useAppSelector(selectSidebarStreched);
+  const { user } = useFirebaseAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -45,12 +47,6 @@ const Sidebar: React.FC<props> = ({}) => {
       if (window.innerWidth < 1200) dispatch(setSidebarStreched(false));
     } else if (window.innerWidth > 1200) dispatch(setSidebarStreched(true));
   }, [dimensions.width]);
-
-  const handleLogout = async () => {
-    setLogoutLoading(true);
-    await signOut(auth);
-    setLogoutLoading(false);
-  };
 
   return (
     <>
@@ -109,29 +105,31 @@ const Sidebar: React.FC<props> = ({}) => {
                 </a>
               </Link>
             ))}
-            <button
-              onClick={() => {
-                setShow(true);
-              }}
-              className={`rounded-[50%] flex flex-col  ${
-                sidebarStreched
-                  ? "translate-x-0 mt-20 items-start"
-                  : "translate-x-[-10px] items-center"
-              }`}
-            >
-              <AiOutlineLogout className={`text-3xl`} color="red" />
-              <span className={`text-[10px]`}>Logout</span>
-            </button>
+            <Link href="/account">
+              <button
+                title={`${user?.username}`}
+                className={`rounded-[50%] flex flex-col justify-center items-center mx-auto  ${
+                  sidebarStreched
+                    ? "translate-x-[-40px] mt-20 border hover:shadow-md shadow border-slate-200 w-[60px] h-[60px]"
+                    : "translate-x-[-8px] items-center"
+                }`}
+              >
+                <VscAccount color="rgba(24, 35, 82)" className={`text-2xl`} />
+                <span className={`text-[8px] text-center`}>
+                  {user &&
+                    user.username &&
+                    (user.username.split(" ").length > 1
+                      ? user.username.split(" ")[0][0] +
+                        user.username.split(" ")[
+                          user.username.split(" ").length - 1
+                        ][0]
+                      : user.username.split(" ")[0][1])}
+                </span>
+              </button>
+            </Link>
           </div>
         </div>
       </div>
-      <ConfirmModal
-        onConfirm={handleLogout}
-        confirmText={"Are you sure you want to logout"}
-        loading={logoutLoading}
-        setShow={setShow}
-        show={show}
-      />
     </>
   );
 };
