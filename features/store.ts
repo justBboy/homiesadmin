@@ -7,7 +7,7 @@ import {
 //import { setupListeners } from '@reduxjs/toolkit/query'
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { authReducer, designReducer } from "./reducers";
+import { authReducer, designReducer, usersReducer } from "./reducers";
 //import baseApi from "./baseApi";
 
 const persistConfig = {
@@ -20,6 +20,7 @@ const rootReducer = combineReducers({
   //[baseApi.reducerPath]: baseApi.reducer,
   auth: authReducer,
   design: designReducer,
+  users: usersReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

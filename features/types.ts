@@ -9,7 +9,8 @@ export type userType = {
   email: string;
   username: string;
   phone: string;
-  isAgent?: boolean;
+  superadmin?: boolean;
+  admin?: boolean;
 };
 
 export type categoryType = {

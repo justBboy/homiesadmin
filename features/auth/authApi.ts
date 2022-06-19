@@ -1,4 +1,3 @@
-import { User } from "firebase/auth";
 import axios from "../../libs/axios";
 
 export const getUserWithToken = async (token: string) => {

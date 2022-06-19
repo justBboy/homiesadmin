@@ -29,15 +29,19 @@ const editCustomer = () => {
   });
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const { id } = router.query;
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (completed && !user) {
+      router.push(`/login?next=/editCustomer/${id}`);
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
+  const handleFormChange = (key: string, value: string | number) => {
+    setForm({ ...form, [key]: value });
+  };
+
+  if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
@@ -45,11 +49,7 @@ const editCustomer = () => {
     );
   }
 
-  const handleFormChange = (key: string, value: string | number) => {
-    setForm({ ...form, [key]: value });
-  };
-
-  if (!loading && user) {
+  if (completed && user) {
     return (
       <div>
         <Head>

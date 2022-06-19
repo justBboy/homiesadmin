@@ -17,15 +17,15 @@ const orders: NextPage = () => {
   const router = useRouter();
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const [selectedOrder, setSelectedOrder] = useState("");
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (completed && !user) {
+      router.push("/login?next=/orders");
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
+  if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
@@ -38,7 +38,7 @@ const orders: NextPage = () => {
     else setSelectedOrder(id);
   };
 
-  if (!loading && user) {
+  if (completed && user) {
     return (
       <div>
         <Head>

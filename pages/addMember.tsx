@@ -3,11 +3,14 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
+import { useDispatch } from "react-redux";
 import ImagePicker from "../components/ImagePicker";
 import Sidebar from "../components/Sidebar";
 import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
-import { useAppSelector } from "../features/hooks";
+import { useAppDispatch, useAppSelector } from "../features/hooks";
 import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
+import { addAdmin } from "../features/users/usersSlice";
+import { useAlert } from "react-alert";
 
 export type memberFormError = {
   adminName: string | undefined;
@@ -21,8 +24,17 @@ export type memberForm = {
   phoneNumber: string;
   errors: memberFormError | null;
 };
+
+export type memberFormItems = {
+  name: string;
+  email: string;
+  phoneNumber: string;
+};
+
 const addMember: NextPage = () => {
   const router = useRouter();
+  const alert = useAlert();
+  const dispatch = useAppDispatch();
   const [form, setForm] = useState<memberForm>({
     name: "",
     email: "",
@@ -30,15 +42,23 @@ const addMember: NextPage = () => {
     errors: null,
   });
   const sidebarStreched = useAppSelector(selectSidebarStreched);
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
+  const [error, setError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (completed && !user) {
+      router.push("/login?next=/addMember");
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
+  useEffect(() => {
+    if (error) {
+      alert.error(error);
+    }
+  }, [error]);
+
+  if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
@@ -50,7 +70,33 @@ const addMember: NextPage = () => {
     setForm({ ...form, [key]: value });
   };
 
-  if (!loading && null) {
+  const cleanForm = () => {
+    setForm({
+      email: "",
+      phoneNumber: "",
+      name: "",
+      errors: null,
+    });
+  };
+  const handleAddAdmin = async () => {
+    setError("");
+    setAddLoading(true);
+    const data = {
+      name: form.name,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+    };
+    const res = await dispatch(addAdmin(data));
+    if (res.meta.requestStatus === "rejected")
+      setError((res as any).error.message);
+    else {
+      alert.success(`${form.name}, Added Successfuly`);
+      cleanForm();
+    }
+    setAddLoading(false);
+  };
+
+  if (completed && user) {
     return (
       <div>
         <Head>
@@ -81,7 +127,7 @@ const addMember: NextPage = () => {
                       onChange={(e) => {
                         handleFormChange("name", e.target.value);
                       }}
-                      placeholder="Food Name"
+                      placeholder="Admin Name"
                     />
                     <input
                       type="email"
@@ -95,7 +141,7 @@ const addMember: NextPage = () => {
                     <input
                       type="tel"
                       className="p-2 outline-none border border-slate-200 w-[80%]"
-                      value={form.email}
+                      value={form.phoneNumber}
                       onChange={(e) => {
                         handleFormChange("phoneNumber", e.target.value);
                       }}
@@ -104,9 +150,20 @@ const addMember: NextPage = () => {
                   </div>
                 </div>
                 <button
-                  className={`flex items-center justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
+                  disabled={addLoading}
+                  onClick={handleAddAdmin}
+                  className={`flex items-center ${
+                    addLoading ? "opacity-70" : "opacity-100"
+                  } justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
                 >
-                  Add
+                  {addLoading ? (
+                    <AiOutlineLoading
+                      className={`text-2xl animate-spin`}
+                      color="black"
+                    />
+                  ) : (
+                    "Add"
+                  )}
                 </button>
               </div>
             </section>

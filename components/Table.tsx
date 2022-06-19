@@ -5,18 +5,19 @@ import ConfirmModal from "./ConfirmModal";
 export type actionType = {
   id: string;
   name: string;
-  onGo: () => void;
+  onGo: (selected: string[] | undefined) => void;
 };
 
 interface props {
   title?: string | number | ReactElement;
   Bottom?: ReactElement;
   titles: string[];
-  data: string[][];
+  data: (string | ReactElement | number)[][];
   hasSideAction?: boolean;
   hasDelete?: boolean;
   hasEdit?: boolean;
   onEditPressed?: (id: string) => void;
+  onDeletePressed?: (id: string) => void;
   selected?: string[];
   setSelected?: (selected: string[]) => void;
   actions?: actionType[];
@@ -37,6 +38,7 @@ const Table: React.FC<props> = ({
   hasDelete,
   hasEdit,
   onEditPressed,
+  onDeletePressed,
   actions,
   actionLoading,
   search,
@@ -117,7 +119,7 @@ const Table: React.FC<props> = ({
               name="action"
             >
               <option value="">Select An Action</option>
-              {actions.map((a) => (
+              {actions.map((a, indx) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
                 </option>
@@ -126,7 +128,8 @@ const Table: React.FC<props> = ({
             <button
               onClick={(e) => {
                 e.preventDefault();
-                if (selected && selected.length) setShowActionConform(true);
+                if (selected && Boolean(selected.length) && action)
+                  setShowActionConform(true);
               }}
               className="text-white bg-slate-400 hover:bg-slate-600 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-4 py-2"
             >
@@ -136,7 +139,7 @@ const Table: React.FC<props> = ({
 
           {action && (
             <ConfirmModal
-              onConfirm={action.onGo}
+              onConfirm={() => action.onGo(selected)}
               confirmText="Are you sure you want to perform action on selected?"
               loading={actionLoading}
               show={showActionConfirm}
@@ -155,10 +158,10 @@ const Table: React.FC<props> = ({
             <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
               <tr>
                 {hasSideAction && <th></th>}
-                {titles.map((t) => {
+                {titles.map((t, indx) => {
                   if (t === "id") return null;
                   return (
-                    <th className="p-2">
+                    <th key={indx} className="p-2">
                       <div className="font-semibold text-left">{t}</div>
                     </th>
                   );
@@ -168,9 +171,9 @@ const Table: React.FC<props> = ({
             </thead>
 
             <tbody className="text-sm divide-y divide-gray-100">
-              {data.map((d) => {
+              {data.map((d, indx) => {
                 return (
-                  <tr>
+                  <tr key={indx}>
                     {hasSideAction && selected && setSelected && (
                       <td className="p-2">
                         <input
@@ -178,26 +181,28 @@ const Table: React.FC<props> = ({
                           className="w-5 h-5"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              if (selected.indexOf(d[0]) === -1) {
-                                setSelected([...selected, d[0]]);
+                              if (selected.indexOf(d[0] as string) === -1) {
+                                setSelected([
+                                  ...selected,
+                                  d[0].toString() as string,
+                                ]);
                               }
                             } else {
-                              if (selected.indexOf(d[0]) !== -1) {
+                              if (selected.indexOf(d[0] as string) !== -1) {
                                 setSelected(
                                   selected.filter((id) => id !== d[0])
                                 );
                               }
                             }
                           }}
-                          value={d[0]}
+                          value={d[0] as string}
                         />
                       </td>
                     )}
                     {d.map((item, indx) => {
-                      console.log(indx);
                       if (indx === 0) return null;
                       return (
-                        <td className="p-2">
+                        <td key={indx} className="p-2">
                           <div className="font-medium text-gray-800">
                             {item}
                           </div>
@@ -205,36 +210,41 @@ const Table: React.FC<props> = ({
                       );
                     })}
 
-                    {hasDelete && (
+                    {(hasDelete || hasEdit) && (
                       <td className="p-2">
                         <div className="flex justify-center">
                           {hasEdit && onEditPressed && (
                             <button
                               onClick={() => {
-                                onEditPressed(d[0]);
+                                onEditPressed(d[0] as string);
                               }}
                               className="hover:text-blue-300"
                             >
                               <AiOutlineEdit className="text-2xl" />
                             </button>
                           )}
-
-                          <button>
-                            <svg
-                              className="w-8 h-8 hover:text-red-600 rounded-full hover:bg-gray-100 p-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
+                          {hasDelete && onDeletePressed && (
+                            <button
+                              onClick={() => {
+                                onDeletePressed(d[0] as string);
+                              }}
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              ></path>
-                            </svg>
-                          </button>
+                              <svg
+                                className="w-8 h-8 hover:text-red-600 rounded-full hover:bg-gray-100 p-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                ></path>
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       </td>
                     )}

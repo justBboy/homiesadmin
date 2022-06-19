@@ -18,15 +18,15 @@ const foods: NextPage = () => {
   const [categorySearch, setCategorySearch] = useState("");
   const [selectedFoods, setSelectedFoods] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (completed && !user) {
+      router.push("/login?next=/foods");
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
+  if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
@@ -52,7 +52,7 @@ const foods: NextPage = () => {
     console.log(selectedCategories);
   };
 
-  if (!loading && user) {
+  if (completed && user) {
     return (
       <div>
         <Head>

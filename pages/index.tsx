@@ -28,23 +28,15 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 const Home: NextPage = () => {
   const router = useRouter();
   const sidebarStreched = useAppSelector(selectSidebarStreched);
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (completed && !user) {
       router.push("/login");
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
-    return (
-      <div className={`w-screen h-screen flex justify-center items-center`}>
-        <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
-      </div>
-    );
-  }
-
-  if (!loading && user) {
+  if (completed && user) {
     return (
       <div className={`min-w-[100vw] min-h-[100vh]`}>
         <Head>

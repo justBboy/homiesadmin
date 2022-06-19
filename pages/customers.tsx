@@ -15,15 +15,15 @@ const customers: NextPage = () => {
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const [search, setSearch] = useState("");
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
-  const { user, loading } = useFirebaseAuth();
+  const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (completed && !user) {
+      router.push("/login?next=/customers");
     }
-  }, [user, loading]);
+  }, [user, completed]);
 
-  if (loading && !user) {
+  if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
         <AiOutlineLoading className={`text-2xl animate-spin`} color="black" />
@@ -40,7 +40,7 @@ const customers: NextPage = () => {
     router.push(`/editCustomer/${id}`);
   };
 
-  if (!loading && user) {
+  if (completed && user) {
     return (
       <div>
         <Head>

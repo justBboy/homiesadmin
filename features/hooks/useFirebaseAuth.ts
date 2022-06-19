@@ -7,36 +7,40 @@ export type savedUserType = {
   email: string | null;
   phone: string | null;
   username: string | null;
+  admin?: boolean;
+  superadmin?: boolean;
 };
 const useFirebaseAuth = () => {
-  const [loading, setLoading] = useState(true);
+  const [completed, setCompleted] = useState(false);
   const [user, setUser] = useState<savedUserType | null>(null);
 
-  const onStateChanged = (user: User | null) => {
-    console.log("user", user);
+  const onStateChanged = async (user: User | null) => {
     if (user) {
+      const idTokenResult = await user.getIdTokenResult();
       const u: savedUserType = {
         email: user.email,
         phone: user.phoneNumber,
         username: user.displayName,
+        admin: Boolean(idTokenResult.claims.admin),
+        superadmin: Boolean(idTokenResult.claims.superadmin),
       };
       setUser(u);
-    } else setUser(user);
+      setCompleted(true);
+    } else {
+      setUser(user);
+    }
   };
   useEffect(() => {
     let unsubscribe: Unsubscribe;
     (async () => {
       unsubscribe = await onAuthStateChanged(auth, onStateChanged);
-      setLoading(false);
     })();
     return () => {
       if (unsubscribe) unsubscribe();
     };
   }, []);
 
-  console.log(loading, user);
-
-  return { user, loading };
+  return { user, completed };
 };
 
 export default useFirebaseAuth;
