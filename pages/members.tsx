@@ -15,9 +15,12 @@ import {
   deleteAdmins,
   getAdmins,
   selectAdmins,
+  setAdminsLastUpdate,
   userType,
-} from "../features/users/usersSlice";
+} from "../features/admin/adminsSlice";
 import Fuse from "fuse.js";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { db } from "../libs/Firebase";
 
 const members: NextPage = () => {
   const dispatch = useAppDispatch();
@@ -26,10 +29,13 @@ const members: NextPage = () => {
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const [page, setPage] = useState(1);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [totalAdmins, setTotalAdmins] = useState(0);
   const [search, setSearch] = useState("");
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [adminsLastUpdate, setAdminsLastUpdate] = useState(0);
   const [deleteUserId, setDeleteUserId] = useState<string | boolean>("");
   const [deleteAdminsLoading, setDeleteAdminsLoading] = useState(false);
+  const [lastUpdateComplete, setLastUpdateComplete] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [displayedAdmins, setDisplayedAdmins] = useState<
     (string | ReactElement)[][]
@@ -90,11 +96,30 @@ const members: NextPage = () => {
     });
   };
 */
+  console.log("last update ======> ", lastUpdateComplete);
   useEffect(() => {
     (async () => {
       setAdminsLoading(true);
-      await dispatch(getAdmins(page));
-      setAdminsLoading(false);
+      console.log(lastUpdateComplete);
+      if (lastUpdateComplete) {
+        await dispatch(getAdmins({ page, lastUpdate: adminsLastUpdate }));
+        setAdminsLoading(false);
+      }
+    })();
+  }, [lastUpdateComplete]);
+
+  useEffect(() => {
+    (async () => {
+      setLastUpdateComplete(false);
+      const res = await getDoc(doc(collection(db, "appGlobals"), "global"));
+      console.log(
+        "customers count ===========> ",
+        (res.data() as any).customersCount
+      );
+      const globals: any = res.data();
+      setTotalAdmins((res.data() as any).adminsCount);
+      setAdminsLastUpdate(globals.adminsLastUpdate?.nanoseconds || 0);
+      setLastUpdateComplete(true);
     })();
   }, []);
 
@@ -179,7 +204,8 @@ const members: NextPage = () => {
                   title={
                     <div className={`flex justify-between`}>
                       <h3 className="text-md font-bold">
-                        {search ? "Search" : "Total"} - {displayedAdmins.length}
+                        {search ? "Search" : "Total"} -{" "}
+                        {search ? displayedAdmins.length : totalAdmins}
                       </h3>
                       <Link href="/addMember">
                         <button className="text-white bg-red-400 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-4 py-2 ">

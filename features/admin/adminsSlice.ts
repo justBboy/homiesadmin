@@ -6,7 +6,7 @@ import {
   deleteAdminsApi,
   editAdminApi,
   getAdminsApi,
-} from "./usersApi";
+} from "./adminsApi";
 
 export type userType = {
   uid: string;
@@ -18,19 +18,30 @@ export type userType = {
 
 interface state {
   adminMembers: userType[];
-  customers: userType[];
+  lastUpdate: number;
 }
 
 const initialState: state = {
   adminMembers: [],
-  customers: [],
+  lastUpdate: 0,
 };
 
 export const getAdmins = createAsyncThunk(
   "users/getAdmins",
-  async (page: number) => {
-    const res = await getAdminsApi(page);
-    return res;
+  async (
+    { page, lastUpdate }: { page: number; lastUpdate: number },
+    thunkAPI
+  ) => {
+    const state = thunkAPI.getState() as RootState;
+    const sLastUpdate = state.users.lastUpdate;
+    console.log(lastUpdate, sLastUpdate);
+    console.log(lastUpdate, sLastUpdate);
+    if (sLastUpdate < lastUpdate) {
+      const res = await getAdminsApi(page, lastUpdate);
+      return res;
+    } else {
+      return null;
+    }
   }
 );
 
@@ -77,11 +88,17 @@ export const slice = createSlice({
       });
       state.adminMembers = [...state.adminMembers, ...newUsers];
     },
+    setAdminsLastUpdate: (state, action: PayloadAction<number>) => {
+      state.lastUpdate = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getAdmins.fulfilled, (state, action: any) => {
-        state.adminMembers = action.payload;
+        if (!action.payload) return;
+        console.log("payload ==========> ", action.payload);
+        state.lastUpdate = action.payload?.lastUpdate || 0;
+        state.adminMembers = action.payload?.data || [];
       })
       .addCase(
         editAdmin.fulfilled,
@@ -118,7 +135,7 @@ export const slice = createSlice({
   },
 });
 
-export const { addAdmins } = slice.actions;
+export const { addAdmins, setAdminsLastUpdate } = slice.actions;
 
 export const selectAdmins = (state: RootState) => state.users.adminMembers;
 export const selectAdminWithId = (id: string) => {

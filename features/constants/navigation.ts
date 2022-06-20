@@ -1,5 +1,5 @@
 import { IconType } from "react-icons";
-import { BiHome } from "react-icons/bi";
+import { BiCategoryAlt, BiHome } from "react-icons/bi";
 import { CgMenuRightAlt } from "react-icons/cg";
 import { MdOutlineEmojiFoodBeverage } from "react-icons/md";
 import { AiOutlineUser } from "react-icons/ai";
@@ -26,6 +26,11 @@ const navigation: navigationType[] = [
     name: "foods",
     route: "/foods",
     icon: MdOutlineEmojiFoodBeverage,
+  },
+  {
+    name: "food Categories",
+    route: "/categories",
+    icon: BiCategoryAlt,
   },
   {
     name: "admin members",

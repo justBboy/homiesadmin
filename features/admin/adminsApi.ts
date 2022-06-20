@@ -2,7 +2,6 @@ import axios from "../../libs/axios";
 import {
   collection,
   getDocs,
-  limit,
   query,
   updateDoc,
   where,
@@ -11,11 +10,11 @@ import { auth, db } from "../../libs/Firebase";
 import { memberFormItems } from "../../pages/addMember";
 import { getIdToken, updateEmail, updateProfile } from "firebase/auth";
 
-export const getAdminsApi = async (page: number) => {
+export const getAdminsApi = async (page: number, lastUpdate: number) => {
   try {
-    const q = query(collection(db, "admins"), limit(20));
+    const q = query(collection(db, "admins"));
     const matched = await getDocs(q);
-    return matched.docs.map((d) => d.data());
+    return { data: matched.docs.map((d) => d.data()), lastUpdate };
   } catch (err) {
     console.log(err);
     throw err;

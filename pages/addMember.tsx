@@ -3,13 +3,11 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
-import { useDispatch } from "react-redux";
-import ImagePicker from "../components/ImagePicker";
 import Sidebar from "../components/Sidebar";
 import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
 import { useAppDispatch, useAppSelector } from "../features/hooks";
 import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
-import { addAdmin } from "../features/users/usersSlice";
+import { addAdmin } from "../features/admin/adminsSlice";
 import { useAlert } from "react-alert";
 
 export type memberFormError = {

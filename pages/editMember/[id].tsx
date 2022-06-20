@@ -7,7 +7,7 @@ import Sidebar from "../../components/Sidebar";
 import { selectSidebarStreched } from "../../features/designManagement/designManagementSlice";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 import useFirebaseAuth from "../../features/hooks/useFirebaseAuth";
-import { selectAdminWithId, editAdmin } from "../../features/users/usersSlice";
+import { selectAdminWithId, editAdmin } from "../../features/admin/adminsSlice";
 import { useAlert } from "react-alert";
 
 export type memberFormError = {

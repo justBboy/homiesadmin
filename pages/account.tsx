@@ -20,7 +20,8 @@ import { getIdToken, signOut } from "firebase/auth";
 import axios from "../libs/axios";
 import { useRouter } from "next/router";
 import { useAlert } from "react-alert";
-import { editAdmin } from "../features/users/usersSlice";
+import { editAdmin } from "../features/admin/adminsSlice";
+import ReauthModal from "../components/ReauthModal";
 
 export type accountFormErrors = {
   username: string | undefined;
@@ -46,6 +47,7 @@ const account: NextPage = () => {
   const alert = useAlert();
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const [pState, setPState] = useState<states>(states.profile);
+  const [reAuthShow, setReAuthShow] = useState(false);
   const { user, completed } = useFirebaseAuth();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [changePLoading, setChangePLoading] = useState(false);
@@ -91,7 +93,8 @@ const account: NextPage = () => {
             token,
           });
           if (res.data.error) {
-            setError(res.data.error);
+            console.log(res.data.error);
+            setError(res.data.error.toString());
             setChangePLoading(false);
             return;
           }
@@ -121,13 +124,11 @@ const account: NextPage = () => {
     if (user?.uid) {
       setSubmitLoading(true);
       const res = await dispatch(editAdmin({ uid: user.uid.toString(), data }));
+      setReAuthShow(true);
       if (res.meta.requestStatus === "rejected") {
         setError((res as any).error.message);
       } else {
         alert.success("Edit Successful");
-        setTimeout(() => {
-          router.back();
-        }, 500);
       }
       setTimeout(() => {
         setSubmitLoading(false);
@@ -335,9 +336,9 @@ const account: NextPage = () => {
                       disabled={submitLoading || !isChanged}
                       className={`${
                         isChanged || submitLoading
-                          ? "opacity-100"
-                          : "opacity-60"
-                      } flex cursor-pointer items-center justify-center p-3 w-full max-w-[380px] bg-yellow-600 hover:bg-yellow-700 text-slate-100 rounded-md shadow-md`}
+                          ? "opacity-100 cursor-pointer hover:bg-yellow-700"
+                          : "opacity-60 cursor-not-allowed"
+                      } flex items-center justify-center p-3 w-full max-w-[380px] bg-yellow-600 text-slate-100 rounded-md shadow-md`}
                     >
                       {submitLoading ? (
                         <AiOutlineLoading
@@ -406,6 +407,7 @@ const account: NextPage = () => {
           </div>
         </div>
       </main>
+      <ReauthModal setShow={setReAuthShow} show={reAuthShow} />
       <ConfirmModal
         onConfirm={handleLogout}
         confirmText="Are you sure you want to logout From your account?"

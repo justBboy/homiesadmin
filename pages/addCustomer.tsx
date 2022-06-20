@@ -2,13 +2,16 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
+import { useDispatch } from "react-redux";
 import Sidebar from "../components/Sidebar";
 import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
-import { useAppSelector } from "../features/hooks";
+import { useAppDispatch, useAppSelector } from "../features/hooks";
 import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
+import { addCustomer as addCustomerDispatch } from "../features/customer/customersSlice";
+import { useAlert } from "react-alert";
 
 export type customerFormError = {
-  adminName: string | undefined;
+  name: string | undefined;
   email: string | undefined;
   phoneNumber: string | undefined;
 };
@@ -22,12 +25,16 @@ export type customerForm = {
 
 const addCustomer = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const alert = useAlert();
   const [form, setForm] = useState<customerForm>({
     name: "",
     email: "",
     phoneNumber: "",
     errors: null,
   });
+  const [error, setError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const { user, completed } = useFirebaseAuth();
 
@@ -37,6 +44,12 @@ const addCustomer = () => {
     }
   }, [user, completed]);
 
+  useEffect(() => {
+    if (error) {
+      alert.error(error);
+    }
+  }, [error]);
+
   if (!completed && !user) {
     return (
       <div className={`w-screen h-screen flex justify-center items-center`}>
@@ -44,9 +57,35 @@ const addCustomer = () => {
       </div>
     );
   }
+  const cleanForm = () => {
+    setForm({
+      email: "",
+      phoneNumber: "",
+      name: "",
+      errors: null,
+    });
+  };
 
   const handleFormChange = (key: string, value: string | number) => {
     setForm({ ...form, [key]: value });
+  };
+
+  const handleAddCustomer = async () => {
+    setError("");
+    setAddLoading(true);
+    const data = {
+      username: form.name,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+    };
+    const res = await dispatch(addCustomerDispatch(data));
+    if (res.meta.requestStatus === "rejected")
+      setError((res as any).error.message);
+    else {
+      alert.success(`${form.name}, Added Successfuly`);
+      cleanForm();
+    }
+    setAddLoading(false);
   };
 
   if (completed && user) {
@@ -85,7 +124,7 @@ const addCustomer = () => {
                     <input
                       type="tel"
                       className="p-2 outline-none border border-slate-200 w-[80%]"
-                      value={form.email}
+                      value={form.phoneNumber}
                       onChange={(e) => {
                         handleFormChange("phoneNumber", e.target.value);
                       }}
@@ -103,9 +142,22 @@ const addCustomer = () => {
                   </div>
                 </div>
                 <button
-                  className={`flex items-center justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
+                  disabled={addLoading}
+                  onClick={handleAddCustomer}
+                  className={`flex items-center ${
+                    addLoading
+                      ? "opacity-60 cursor-not-allowed"
+                      : "opacity-100 cursor-pointer"
+                  } justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
                 >
-                  Add
+                  {addLoading ? (
+                    <AiOutlineLoading
+                      className={`text-2xl animate-spin`}
+                      color="black"
+                    />
+                  ) : (
+                    "Add"
+                  )}
                 </button>
               </div>
             </section>

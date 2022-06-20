@@ -10,12 +10,19 @@ export type savedUserType = {
   admin?: boolean;
   superadmin?: boolean;
 };
-const useFirebaseAuth = () => {
+const useFirebaseAuth = (
+  setShowReauth: ((v: boolean) => void) | null = null
+) => {
   const [completed, setCompleted] = useState(false);
-  const [user, setUser] = useState<savedUserType | null>(null);
+  const [savedUser, setSavedUser] = useState<savedUserType | null>(null);
 
   const onStateChanged = async (user: User | null) => {
     if (user) {
+      if (user.uid === savedUser?.uid) {
+        if (setShowReauth) {
+          setShowReauth(true);
+        }
+      }
       const idTokenResult = await user.getIdTokenResult();
       const u: savedUserType = {
         uid: user.uid,
@@ -25,10 +32,10 @@ const useFirebaseAuth = () => {
         admin: Boolean(idTokenResult.claims.admin),
         superadmin: Boolean(idTokenResult.claims.superadmin),
       };
-      setUser(u);
+      setSavedUser(u);
       setCompleted(true);
     } else {
-      setUser(user);
+      setSavedUser(user);
       setCompleted(true);
     }
   };
@@ -42,7 +49,7 @@ const useFirebaseAuth = () => {
     };
   }, []);
 
-  return { user, completed };
+  return { user: savedUser, completed };
 };
 
 export default useFirebaseAuth;

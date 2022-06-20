@@ -1,5 +1,6 @@
 import React, { ReactElement, useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
+import { GrNext, GrPrevious } from "react-icons/gr";
 import ConfirmModal from "./ConfirmModal";
 
 export type actionType = {
@@ -21,6 +22,11 @@ interface props {
   selected?: string[];
   setSelected?: (selected: string[]) => void;
   actions?: actionType[];
+  hasPagination?: boolean;
+  onPaginationNext?: (page: number) => void;
+  onPaginationPrev?: (page: number) => void;
+  page?: number;
+  totalPages?: number;
   actionLoading?: boolean;
   search?: string;
   setSearch?: (s: string) => void;
@@ -41,6 +47,11 @@ const Table: React.FC<props> = ({
   onDeletePressed,
   actions,
   actionLoading,
+  hasPagination,
+  onPaginationNext,
+  onPaginationPrev,
+  page,
+  totalPages,
   search,
   setSearch,
   onSearchSubmit,
@@ -59,9 +70,9 @@ const Table: React.FC<props> = ({
   };
 
   return (
-    <div className="flex flex-col max-w-2xl my-2 animate__animated animate__fadeIn w-full">
+    <div className="flex flex-col max-w-2xl my-2 animate__animated animate__fadeIn w-full relative">
       {actions && (
-        <div className="flex flex-col sm:flex-row items-center">
+        <div className="flex flex-col sm:flex-row items-center relative">
           {search !== undefined && setSearch && (
             <form
               onSubmit={onSearchSubmit && onSearchSubmit}
@@ -153,7 +164,7 @@ const Table: React.FC<props> = ({
           {title && title}
         </header>
 
-        <div className="overflow-x-auto sm:p-3">
+        <div className="overflow-x-auto sm:p-3 relative">
           <table className="table-auto w-full">
             <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
               <tr>
@@ -254,6 +265,52 @@ const Table: React.FC<props> = ({
             </tbody>
           </table>
         </div>
+        {hasPagination &&
+          onPaginationNext &&
+          onPaginationPrev &&
+          page &&
+          totalPages && (
+            <div className={`w-full flex justify-between`}>
+              <div
+                className={`flex-1 flex flex-col justify-center pl-5 font-bold text-md`}
+              >
+                <h3
+                  className={`text-sm font-gothamThin flex flex-col justify-center`}
+                >
+                  {page} of {totalPages}
+                </h3>
+              </div>
+              <div className={`p-3 flex items-center`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPaginationPrev(page);
+                  }}
+                  disabled={page <= 1}
+                  className={`rounded-md p-2 border  ${
+                    page <= 1 && "opacity-50 cursor-not-allowed"
+                  } border-slate-200 hover:shadow`}
+                >
+                  <GrPrevious
+                    className={`text-xs hover:text-black`}
+                    color="#333"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPaginationNext(page);
+                  }}
+                  disabled={page === totalPages}
+                  className={`rounded-md p-2 border ${
+                    page === totalPages && "opacity-50 cursor-not-allowed"
+                  } border-slate-200 hover:shadow`}
+                >
+                  <GrNext className={`text-xs hover:text-black`} color="#333" />
+                </button>
+              </div>
+            </div>
+          )}
         {Bottom && Bottom}
       </div>
     </div>

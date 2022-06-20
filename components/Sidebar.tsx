@@ -110,7 +110,7 @@ const Sidebar: React.FC<props> = ({}) => {
                 title={`${user?.username}`}
                 className={`rounded-[50%] flex flex-col justify-center items-center mx-auto  ${
                   sidebarStreched
-                    ? "translate-x-[-40px] mt-20 border hover:shadow-md shadow border-slate-200 w-[60px] h-[60px]"
+                    ? "translate-x-[-40px] mt-20 border hover:shadow-md border-slate-200 w-[60px] h-[60px]"
                     : "translate-x-[-8px] items-center"
                 }`}
               >
