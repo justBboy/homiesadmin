@@ -12,6 +12,9 @@ import {
   customersReducer,
   designReducer,
   usersReducer,
+  foodsReducer,
+  ordersReducer,
+  customSalesReducer,
 } from "./reducers";
 //import baseApi from "./baseApi";
 
@@ -27,6 +30,9 @@ const rootReducer = combineReducers({
   design: designReducer,
   users: usersReducer,
   customers: customersReducer,
+  foods: foodsReducer,
+  orders: ordersReducer,
+  customSales: customSalesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

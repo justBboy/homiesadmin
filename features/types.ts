@@ -18,3 +18,8 @@ export type categoryType = {
   imgURL: string;
   name: string;
 };
+
+export enum foodAvailable {
+  true,
+  false,
+}

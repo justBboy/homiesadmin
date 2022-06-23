@@ -4,6 +4,7 @@ import { CgMenuRightAlt } from "react-icons/cg";
 import { MdOutlineEmojiFoodBeverage } from "react-icons/md";
 import { AiOutlineUser } from "react-icons/ai";
 import { HiOutlineUsers } from "react-icons/hi";
+import { SiBuymeacoffee } from "react-icons/si";
 
 export type navigationType = {
   name: string;
@@ -21,6 +22,11 @@ const navigation: navigationType[] = [
     name: "orders",
     route: "/orders",
     icon: CgMenuRightAlt,
+  },
+  {
+    name: "custom sales",
+    route: "/cSales",
+    icon: SiBuymeacoffee,
   },
   {
     name: "foods",

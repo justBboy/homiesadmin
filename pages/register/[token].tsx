@@ -26,7 +26,7 @@ export type registerForm = {
   errors: registerFormError | null;
 };
 
-const register: NextPage = () => {
+const Register: NextPage = () => {
   const { user: authUser, completed: isLoggedInLoadingComplete } =
     useFirebaseAuth();
   const [form, setForm] = useState<registerForm>({
@@ -228,4 +228,4 @@ const register: NextPage = () => {
   );
 };
 
-export default register;
+export default Register;

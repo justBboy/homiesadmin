@@ -41,7 +41,7 @@ enum states {
   passwords,
 }
 
-const account: NextPage = () => {
+const Account: NextPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const alert = useAlert();
@@ -419,4 +419,4 @@ const account: NextPage = () => {
   );
 };
 
-export default account;
+export default Account;

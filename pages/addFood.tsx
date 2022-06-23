@@ -1,14 +1,23 @@
+import { collection, doc, getDoc } from "firebase/firestore";
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { useAlert } from "react-alert";
 import { AiOutlineLoading } from "react-icons/ai";
 import ImagePicker from "../components/ImagePicker";
 import Sidebar from "../components/Sidebar";
 import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
-import { useAppSelector } from "../features/hooks";
+import {
+  addFood,
+  foodType,
+  getFoodCategories,
+  selectFoodCategories,
+} from "../features/foods/foodsSlice";
+import { useAppDispatch, useAppSelector } from "../features/hooks";
 import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
+import { db } from "../libs/Firebase";
 
 export type foodFormError = {
   name: string | undefined;
@@ -23,23 +32,63 @@ export type foodForm = {
   errors: foodFormError | null;
 };
 
-const addFood: NextPage = ({}) => {
+const AddFood: NextPage = ({}) => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const alert = useAlert();
   const [form, setForm] = useState<foodForm>({
     name: "",
     price: 0,
     category: "",
     errors: null,
   });
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImage, setSelectedImage] = useState<
+    string | ArrayBuffer | null
+  >("");
   const sidebarStreched = useAppSelector(selectSidebarStreched);
+  const [
+    foodCategoriesLastUpdateComplete,
+    setFoodCategoriesLastUpdateComplete,
+  ] = useState(false);
+  const [foodCategoriesLastUpdate, setFoodCategoriesLastUpdate] = useState(0);
+  const categories = useAppSelector(selectFoodCategories);
+  const [error, setError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
   const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
     if (completed && !user) {
       router.push("/login?next=/addFood");
     }
-  }, [user, completed]);
+  }, [user, completed, router]);
+
+  useEffect(() => {
+    (async () => {
+      if (foodCategoriesLastUpdateComplete) {
+        await dispatch(
+          getFoodCategories({ page: 1, lastUpdate: foodCategoriesLastUpdate })
+        );
+      }
+    })();
+  }, [foodCategoriesLastUpdateComplete, dispatch, foodCategoriesLastUpdate]);
+
+  useEffect(() => {
+    (async () => {
+      setFoodCategoriesLastUpdateComplete(false);
+      const res = await getDoc(doc(collection(db, "appGlobals"), "foods"));
+      const globals: any = res.data();
+      setFoodCategoriesLastUpdate(
+        globals?.foodCategoriesLastUpdate?.nanoseconds || 0
+      );
+      setFoodCategoriesLastUpdateComplete(true);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      alert.error(error);
+    }
+  }, [error]);
 
   if (!completed && !user) {
     return (
@@ -51,6 +100,40 @@ const addFood: NextPage = ({}) => {
 
   const handleFormChange = (key: string, value: string | number) => {
     setForm({ ...form, [key]: value });
+  };
+
+  const cleanForm = () => {
+    setForm({
+      name: "",
+      price: 0,
+      category: "",
+      errors: null,
+    });
+    setSelectedImage("");
+  };
+  const handleAddFood = async () => {
+    setError("");
+    setAddLoading(true);
+    if (!form.category || !form.name || !form.price || !selectedImage) {
+      setAddLoading(false);
+      setError("Set All Fields");
+      return;
+    }
+    const data: Partial<foodType> = {
+      imgURL: selectedImage,
+      name: form.name,
+      price: form.price,
+      category: form.category,
+      available: false,
+    };
+    const res = await dispatch(addFood(data));
+    if (res.meta.requestStatus === "rejected")
+      setError((res as any).error.message);
+    else {
+      alert.success(`${form.name}, Added Successfuly`);
+      cleanForm();
+    }
+    setAddLoading(false);
   };
 
   if (completed && user) {
@@ -75,10 +158,10 @@ const addFood: NextPage = ({}) => {
                 <h2 className={`font-bold text-2xl mb-5 capitalize`}>
                   Add new food
                 </h2>
-                <div className={`flex items-center`}>
+                <div className={`flex flex-col sm:flex-row items-center`}>
                   <ImagePicker
-                    selected={selectedImage}
-                    setSelected={setSelectedImage}
+                    image={selectedImage}
+                    setImage={setSelectedImage}
                     tstyles={`w-[180px] h-[150px] mr-2`}
                   />
                   <div className="flex flex-col">
@@ -114,13 +197,29 @@ const addFood: NextPage = ({}) => {
                       }
                     >
                       <option value="">Choose Category</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
                 <button
-                  className={`flex items-center justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md`}
+                  disabled={addLoading}
+                  onClick={handleAddFood}
+                  className={`flex items-center ${
+                    addLoading ? "opacity-70" : "opacity-100"
+                  } justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md`}
                 >
-                  Add
+                  {addLoading ? (
+                    <AiOutlineLoading
+                      className={`text-2xl animate-spin`}
+                      color="black"
+                    />
+                  ) : (
+                    "Add"
+                  )}
                 </button>
               </div>
             </section>
@@ -136,4 +235,4 @@ const addFood: NextPage = ({}) => {
   );
 };
 
-export default addFood;
+export default AddFood;

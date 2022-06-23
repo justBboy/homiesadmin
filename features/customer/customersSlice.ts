@@ -51,7 +51,8 @@ export const getCustomers = createAsyncThunk(
       return res;
     } else {
       const isUpdated =
-        state.customers.customers[cIndx]?.lastUpdate < lastUpdate;
+        state.customers.customers[cIndx]?.lastUpdate < lastUpdate ||
+        lastUpdate === 0;
 
       if (isUpdated) {
         const lastDoc = state.customers.lastDoc;

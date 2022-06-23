@@ -29,7 +29,7 @@ export type memberFormItems = {
   phoneNumber: string;
 };
 
-const addMember: NextPage = () => {
+const AddMember: NextPage = () => {
   const router = useRouter();
   const alert = useAlert();
   const dispatch = useAppDispatch();
@@ -177,4 +177,4 @@ const addMember: NextPage = () => {
   );
 };
 
-export default addMember;
+export default AddMember;

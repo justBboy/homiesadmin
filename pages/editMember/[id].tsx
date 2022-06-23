@@ -22,7 +22,7 @@ export type memberForm = {
   phoneNumber: string;
   errors: memberFormError | null;
 };
-const editMembers = () => {
+const EditMembers = () => {
   const router = useRouter();
   const alert = useAlert();
   const { id } = router.query;
@@ -183,4 +183,4 @@ const editMembers = () => {
   );
 };
 
-export default editMembers;
+export default EditMembers;

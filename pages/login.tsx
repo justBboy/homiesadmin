@@ -21,7 +21,7 @@ export type loginForm = {
   errors: loginFormError | null;
 };
 
-const login: NextPage = () => {
+const Login: NextPage = () => {
   const router = useRouter();
   const { user, completed } = useFirebaseAuth();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -161,4 +161,4 @@ const login: NextPage = () => {
   );
 };
 
-export default login;
+export default Login;

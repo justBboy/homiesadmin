@@ -25,7 +25,7 @@ export type changePasswordForm = {
   confirmPassword: string;
   errors: changePasswordFormError | null;
 };
-const changePassword = () => {
+const ChangePassword = () => {
   const { user: authUser, completed: isLoggedInLoadingComplete } =
     useFirebaseAuth();
   const [form, setForm] = useState<changePasswordForm>({
@@ -210,4 +210,4 @@ const changePassword = () => {
   );
 };
 
-export default changePassword;
+export default ChangePassword;

@@ -2,11 +2,13 @@ import { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { useAlert } from "react-alert";
 import { AiOutlineLoading } from "react-icons/ai";
 import ImagePicker from "../components/ImagePicker";
 import Sidebar from "../components/Sidebar";
 import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
-import { useAppSelector } from "../features/hooks";
+import { addFoodCategory } from "../features/foods/foodsSlice";
+import { useAppDispatch, useAppSelector } from "../features/hooks";
 import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
 
 export type categoryFormError = {
@@ -17,13 +19,19 @@ export type categoryForm = {
   name: string;
   errors: categoryFormError | null;
 };
-const addCategory: NextPage = () => {
+const AddCategory: NextPage = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const alert = useAlert();
   const [form, setForm] = useState<categoryForm>({
     name: "",
     errors: null,
   });
-  const [selectedImage, setSelectedImage] = useState("");
+  const [error, setError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<
+    string | ArrayBuffer | null
+  >("");
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const { user, completed } = useFirebaseAuth();
 
@@ -31,7 +39,13 @@ const addCategory: NextPage = () => {
     if (completed && !user) {
       router.push("/login?next=/addCategory");
     }
-  }, [user, completed]);
+  }, [user, completed, router]);
+
+  useEffect(() => {
+    if (error) {
+      alert.error(error);
+    }
+  }, [error]);
 
   if (completed && !user) {
     return (
@@ -43,6 +57,35 @@ const addCategory: NextPage = () => {
 
   const handleFormChange = (key: string, value: string | number) => {
     setForm({ ...form, [key]: value });
+  };
+
+  const cleanForm = () => {
+    setForm({
+      name: "",
+      errors: null,
+    });
+    setSelectedImage("");
+  };
+  const handleAddCategory = async () => {
+    setError("");
+    setAddLoading(true);
+    const data = {
+      imgURL: selectedImage,
+      name: form.name,
+    };
+    if (!form.name || !selectedImage) {
+      setAddLoading(false);
+      setError("Set All Fields");
+      return;
+    }
+    const res = await dispatch(addFoodCategory(data));
+    if (res.meta.requestStatus === "rejected")
+      setError((res as any).error.message);
+    else {
+      alert.success(`${form.name}, Added Successfuly`);
+      cleanForm();
+    }
+    setAddLoading(false);
   };
 
   if (completed && user) {
@@ -67,10 +110,10 @@ const addCategory: NextPage = () => {
                 <h2 className={`font-bold text-2xl mb-5 capitalize`}>
                   Add new food category
                 </h2>
-                <div className={`flex items-center`}>
+                <div className={`flex flex-col sm:flex-row items-center`}>
                   <ImagePicker
-                    selected={selectedImage}
-                    setSelected={setSelectedImage}
+                    image={selectedImage}
+                    setImage={setSelectedImage}
                     tstyles={`w-[180px] h-[150px] mr-2`}
                   />
                   <div className="flex flex-col">
@@ -86,9 +129,20 @@ const addCategory: NextPage = () => {
                   </div>
                 </div>
                 <button
-                  className={`flex items-center justify-center w-[80%] p-5 bg-blue-600 hover:bg-blue-700 text-slate-100 rounded-md shadow-md mt-2`}
+                  disabled={addLoading}
+                  onClick={handleAddCategory}
+                  className={`flex items-center ${
+                    addLoading ? "opacity-70" : "opacity-100"
+                  } justify-center w-[80%] p-5 bg-blue-600 hover:bg-blue-700 text-slate-100 rounded-md shadow-md mt-2`}
                 >
-                  Add
+                  {addLoading ? (
+                    <AiOutlineLoading
+                      className={`text-2xl animate-spin`}
+                      color="black"
+                    />
+                  ) : (
+                    "Add"
+                  )}
                 </button>
               </div>
             </section>
@@ -104,4 +158,4 @@ const addCategory: NextPage = () => {
   );
 };
 
-export default addCategory;
+export default AddCategory;

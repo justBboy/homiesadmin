@@ -4,8 +4,8 @@ export const dummyOrders: ChartData<"line", any, any> = {
   labels: ["January", "February", "March", "April", "May", "June", "July"],
   datasets: [
     {
-      label: "Your Past 5 Monts orders",
-      data: [1003, 894, 2042, 2835, 3004, 2039, 2395],
+      label: "Your Past 5 Months orders",
+      data: [0, 0, 0, 0, 0, 0, 0],
       fill: true,
       borderColor: "#dc2626",
       pointBackgroundColor: "#dc2626",

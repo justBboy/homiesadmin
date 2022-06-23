@@ -36,7 +36,7 @@ export const getAdmins = createAsyncThunk(
     const sLastUpdate = state.users.lastUpdate;
     console.log(lastUpdate, sLastUpdate);
     console.log(lastUpdate, sLastUpdate);
-    if (sLastUpdate < lastUpdate) {
+    if (sLastUpdate < lastUpdate || lastUpdate === 0) {
       const res = await getAdminsApi(page, lastUpdate);
       return res;
     } else {
@@ -94,6 +94,9 @@ export const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(addAdmin.fulfilled, (state, action: any) => {
+        state.adminMembers.unshift(action.payload);
+      })
       .addCase(getAdmins.fulfilled, (state, action: any) => {
         if (!action.payload) return;
         console.log("payload ==========> ", action.payload);

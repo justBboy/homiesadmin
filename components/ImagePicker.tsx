@@ -5,12 +5,11 @@ import { IoMdAdd } from "react-icons/io";
 
 interface props {
   tstyles?: string;
-  selected: string;
-  setSelected: (s: string) => void;
+  image: string | ArrayBuffer | null;
+  setImage: (v: string | ArrayBuffer | null) => void;
 }
 
-const ImagePicker: React.FC<props> = ({ tstyles, selected, setSelected }) => {
-  const [image, setImage] = useState<string | ArrayBuffer | null>("");
+const ImagePicker: React.FC<props> = ({ tstyles, image, setImage }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {

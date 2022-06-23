@@ -23,7 +23,7 @@ export type customerForm = {
   errors: customerFormError | null;
 };
 
-const addCustomer = () => {
+const AddCustomer = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const alert = useAlert();
@@ -148,7 +148,7 @@ const addCustomer = () => {
                     addLoading
                       ? "opacity-60 cursor-not-allowed"
                       : "opacity-100 cursor-pointer"
-                  } justify-center w-[80%] p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
+                  } justify-center w-[80%] p-2 sm:p-5 bg-red-600 hover:bg-red-700 text-slate-100 rounded-md shadow-md mt-3`}
                 >
                   {addLoading ? (
                     <AiOutlineLoading
@@ -173,4 +173,4 @@ const addCustomer = () => {
   );
 };
 
-export default addCustomer;
+export default AddCustomer;

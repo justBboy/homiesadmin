@@ -37,19 +37,18 @@ const OrderItem: React.FC<props> = ({ isOpened, items }) => {
           }`}
         >
           <div className={`flex flex-col items-center p-2 sm:p-5 w-full`}>
-            {items.map((item) => (
-              <div
-                key={item.foodName}
-                className={`flex shadow-sm w-full justify-between items-center py-5 px-3`}
+            <div
+              className={`flex shadow-sm w-full justify-between items-center py-5 px-3`}
+            >
+              <h4 className={`font-gotham text-slate-800 w-1/2 text-center`}>
+                Banku and okro stew
+              </h4>
+              <h5
+                className={`font-gothamMedium text-slate-700 w-1/2 text-center`}
               >
-                <h4 className={`font-gotham text-slate-800 `}>
-                  {item.foodName}
-                </h4>
-                <h5 className={`font-gothamMedium text-slate-700`}>
-                  Ghs{item.price}
-                </h5>
-              </div>
-            ))}
+                Ghs20
+              </h5>
+            </div>
           </div>
         </div>
       )}

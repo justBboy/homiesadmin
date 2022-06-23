@@ -3,27 +3,85 @@ import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { MdOutlinePendingActions, MdOutlineToday } from "react-icons/md";
 import { BsFillCaretDownFill, BsFillCaretUpFill } from "react-icons/bs";
-import { IoMdAdd } from "react-icons/io";
-import DetailCard from "../components/DetailCard";
-import Sidebar from "../components/Sidebar";
-import { selectSidebarStreched } from "../features/designManagement/designManagementSlice";
-import { useAppSelector } from "../features/hooks";
-import OrderItem from "../components/OrderItem";
+import DetailCard from "../../components/DetailCard";
+import Sidebar from "../../components/Sidebar";
+import { selectSidebarStreched } from "../../features/designManagement/designManagementSlice";
+import { useAppSelector } from "../../features/hooks";
+import OrderItem from "../../components/OrderItem";
 import { AiOutlineLoading } from "react-icons/ai";
-import useFirebaseAuth from "../features/hooks/useFirebaseAuth";
+import useFirebaseAuth from "../../features/hooks/useFirebaseAuth";
 import { useRouter } from "next/router";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { db } from "../../libs/Firebase";
+import Link from "next/link";
 
-const orders: NextPage = () => {
+const Orders: NextPage = () => {
   const router = useRouter();
   const sidebarStreched = useAppSelector(selectSidebarStreched);
   const [selectedOrder, setSelectedOrder] = useState("");
+  const [todayOrdersCompleted, setTodayOrdersCompleted] = useState(0);
+  const [todayOrdersFailed, setTodayOrdersFailed] = useState(0);
+  const [todayOrdersPending, setTodayOrdersPending] = useState(0);
   const { user, completed } = useFirebaseAuth();
 
   useEffect(() => {
     if (completed && !user) {
       router.push("/login?next=/orders");
     }
-  }, [user, completed]);
+  }, [user, completed, router]);
+
+  useEffect(() => {
+    (async () => {
+      const today = new Date();
+      const globalsCollection = collection(db, "appGlobals");
+      try {
+        const ordersRes = await getDoc(doc(globalsCollection, "orders"));
+        const orders: any = ordersRes.data();
+        //
+        setTodayOrdersCompleted(
+          (orders &&
+            orders[
+              `orders${today.getDate()}-${
+                today.getMonth() + 1
+              }-${today.getFullYear()}CompletedCount`
+            ]) ||
+            0
+        );
+        //
+        setTodayOrdersFailed(
+          (orders &&
+            orders[
+              `orders${today.getDate()}-${
+                today.getMonth() + 1
+              }-${today.getFullYear()}FailedCount`
+            ]) ||
+            0
+        );
+        //
+        setTodayOrdersPending(
+          (orders &&
+            orders[
+              `orders${today.getDate()}-${
+                today.getMonth() + 1
+              }-${today.getFullYear()}Count`
+            ] -
+              orders[
+                `orders${today.getDate()}-${
+                  today.getMonth() + 1
+                }-${today.getFullYear()}FailedCount`
+              ] -
+              orders[
+                `orders${today.getDate()}-${
+                  today.getMonth() + 1
+                }-${today.getFullYear()}CompletedCount`
+              ]) ||
+            0
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    })();
+  }, []);
 
   if (!completed && !user) {
     return (
@@ -54,21 +112,21 @@ const orders: NextPage = () => {
             <DetailCard
               Icon={MdOutlinePendingActions}
               bg={"#dbbbb2ad"}
-              detail={"5"}
+              detail={`${todayOrdersPending}`}
               title={"Pending Today"}
               subtitle={"Orders in progress"}
             />
             <DetailCard
               Icon={MdOutlineToday}
               bg={"#90818161"}
-              detail={"15"}
+              detail={`${todayOrdersCompleted}`}
               title={"Orders Today"}
               subtitle={"Completed Today"}
             />
             <DetailCard
               Icon={MdOutlineToday}
               bg={"#69565657"}
-              detail={"2"}
+              detail={`${todayOrdersFailed}`}
               title={"Failed"}
               subtitle={"All Orders Failed"}
             />
@@ -123,37 +181,33 @@ const orders: NextPage = () => {
             </form>
           </div>
           <div>
-            <div
-              className={`flex justify-evenly w-full items-center px-8 py-5`}
-            >
-              <div className={`w-1/3 `}>
-                <h6 className="font-gotham text-[10px] text-[initial] font-bold text-left">
-                  Order Id
-                </h6>
-              </div>
-              <div className={`w-1/3`}>
-                <h6 className="font-gotham text-[10px] text-[initial] font-bold text-left">
-                  Items Count
-                </h6>
-              </div>
-              <div className={`w-1/3`}>
-                <h6 className="font-gotham text-[10px] text-[initial] font-bold text-left">
-                  Price
-                </h6>
-              </div>
+            <div className={`px-5 pt-2 w-full flex justify-end`}>
+              <Link href="/orders/history">
+                <button
+                  className={`text-white bg-slate-400 hover:bg-slate-600 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-4 py-2`}
+                >
+                  History
+                </button>
+              </Link>
             </div>
+            <h2 className={`font-bold text-md text-center m-2`}>New Orders</h2>
             <div
               onClick={() => {
                 handleSelectOrder("1");
               }}
-              className={`relative transition-all duration-1000 bg-slate-200 mx-5 px-1 py-5 hover:bg-slate-300 cursor-pointer mb-5 overflow-hidden`}
+              className={`relative transition-all duration-1000 bg-slate-200 mx-5 px-1 py-5 hover:bg-slate-300 cursor-pointer mb-5 overflow-hidden rounded`}
             >
               <div
                 className={`w-full flex justify-evenly items-center relative`}
               >
-                <div className={`w-1/3`}>
-                  <h6 className="font-sm text-[10px] sm:text-[initial] sm:font-md text-left">
-                    #############Order Id
+                <div className={``}>
+                  <h6 className={`font-xs font-gothamLight text-xs`}>
+                    {new Date().toDateString()}
+                  </h6>
+                </div>
+                <div className={``}>
+                  <h6 className="font-md font-gothamLight text-center">
+                    #######Order Id
                   </h6>
                   {selectedOrder ? (
                     <BsFillCaretUpFill
@@ -163,13 +217,8 @@ const orders: NextPage = () => {
                     <BsFillCaretDownFill className="absolute right-5 top-[50%] translate-y-[-50%]" />
                   )}
                 </div>
-                <div className={`w-1/3`}>
-                  <h6 className="font-sm text-[10px] sm:text-[initial] font-md text-left">
-                    Items Count
-                  </h6>
-                </div>
-                <div className={`w-1/3`}>
-                  <h6 className="font-sm text-[10px] sm:text-md font-md text-left ml-6">
+                <div className={``}>
+                  <h6 className="font-md font-gothamLight text-center">
                     Price
                   </h6>
                 </div>
@@ -191,4 +240,4 @@ const orders: NextPage = () => {
   );
 };
 
-export default orders;
+export default Orders;

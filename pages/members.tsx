@@ -2,7 +2,13 @@ import { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { ReactElement, useEffect, useMemo, useState } from "react";
+import React, {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { AiOutlineCheckCircle, AiOutlineLoading } from "react-icons/ai";
 import ConfirmModal from "../components/ConfirmModal";
 import Sidebar from "../components/Sidebar";
@@ -15,14 +21,12 @@ import {
   deleteAdmins,
   getAdmins,
   selectAdmins,
-  setAdminsLastUpdate,
-  userType,
 } from "../features/admin/adminsSlice";
 import Fuse from "fuse.js";
 import { collection, doc, getDoc } from "firebase/firestore";
 import { db } from "../libs/Firebase";
 
-const members: NextPage = () => {
+const Members: NextPage = () => {
   const dispatch = useAppDispatch();
   const alert = useAlert();
   const router = useRouter();
@@ -47,17 +51,20 @@ const members: NextPage = () => {
     if (completed && !user) {
       router.push("/login?next=/members");
     }
-  }, [user, completed]);
+  }, [user, completed, router]);
 
   console.log(selectedMembers);
-  const handleDeleteSelected = async (selected: string[] | undefined) => {
-    setActionLoading(true);
-    if (selected) {
-      await dispatch(deleteAdmins(selected));
-      alert.success("Delete Successful");
-    }
-    setActionLoading(false);
-  };
+  const handleDeleteSelected = useCallback(
+    async (selected: string[] | undefined) => {
+      setActionLoading(true);
+      if (selected) {
+        await dispatch(deleteAdmins(selected));
+        alert.success("Delete Successful");
+      }
+      setActionLoading(false);
+    },
+    [dispatch, alert]
+  );
 
   const searchAdmin = useMemo(() => {
     return (search: string) => {
@@ -71,7 +78,7 @@ const members: NextPage = () => {
         return sItems.map((i) => i.item);
       }
     };
-  }, [admins, search]);
+  }, [admins]);
 
   const handleEdit = (id: string) => {
     console.log(id);
@@ -96,7 +103,6 @@ const members: NextPage = () => {
     });
   };
 */
-  console.log("last update ======> ", lastUpdateComplete);
   useEffect(() => {
     (async () => {
       setAdminsLoading(true);
@@ -106,19 +112,15 @@ const members: NextPage = () => {
         setAdminsLoading(false);
       }
     })();
-  }, [lastUpdateComplete]);
+  }, [lastUpdateComplete, dispatch, page, adminsLastUpdate]);
 
   useEffect(() => {
     (async () => {
       setLastUpdateComplete(false);
-      const res = await getDoc(doc(collection(db, "appGlobals"), "global"));
-      console.log(
-        "customers count ===========> ",
-        (res.data() as any).customersCount
-      );
+      const res = await getDoc(doc(collection(db, "appGlobals"), "admins"));
       const globals: any = res.data();
-      setTotalAdmins((res.data() as any).adminsCount);
-      setAdminsLastUpdate(globals.adminsLastUpdate?.nanoseconds || 0);
+      setTotalAdmins((res.data() as any)?.adminsCount);
+      setAdminsLastUpdate(globals?.adminsLastUpdate?.nanoseconds || 0);
       setLastUpdateComplete(true);
     })();
   }, []);
@@ -128,12 +130,13 @@ const members: NextPage = () => {
       let admins = searchAdmin(search);
       if (admins)
         setDisplayedAdmins(
-          admins.map((admin) => [
+          admins.map((admin, indx) => [
             admin.uid,
             admin.username,
             admin.email,
             admin.phoneNumber,
             <AiOutlineCheckCircle
+              key={indx}
               color={`${admin.disabled ? "#333" : "green"}`}
             />,
           ])
@@ -141,15 +144,18 @@ const members: NextPage = () => {
       return;
     }
     setDisplayedAdmins(
-      admins.map((admin) => [
+      admins.map((admin, indx) => [
         admin.uid,
         admin.username,
         admin.email,
         admin.phoneNumber,
-        <AiOutlineCheckCircle color={`${admin.disabled ? "#333" : "green"}`} />,
+        <AiOutlineCheckCircle
+          key={indx}
+          color={`${admin.disabled ? "#333" : "green"}`}
+        />,
       ])
     );
-  }, [admins, search]);
+  }, [admins, search, searchAdmin]);
 
   const actions = useMemo(() => {
     if (user?.superadmin) {
@@ -161,7 +167,7 @@ const members: NextPage = () => {
         },
       ];
     }
-  }, [user]);
+  }, [user, handleDeleteSelected]);
 
   if (!completed && !user) {
     return (
@@ -205,7 +211,7 @@ const members: NextPage = () => {
                     <div className={`flex justify-between`}>
                       <h3 className="text-md font-bold">
                         {search ? "Search" : "Total"} -{" "}
-                        {search ? displayedAdmins.length : totalAdmins}
+                        {search ? displayedAdmins.length : admins.length || 0}
                       </h3>
                       <Link href="/addMember">
                         <button className="text-white bg-red-400 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-4 py-2 ">
@@ -254,4 +260,4 @@ const members: NextPage = () => {
   );
 };
 
-export default members;
+export default Members;

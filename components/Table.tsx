@@ -214,7 +214,7 @@ const Table: React.FC<props> = ({
                       if (indx === 0) return null;
                       return (
                         <td key={indx} className="p-2">
-                          <div className="font-medium text-gray-800">
+                          <div className="font-medium min-w-[50px] min-h-[50px] text-gray-800 flex flex-col justify-center justify-center">
                             {item}
                           </div>
                         </td>
